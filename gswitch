@@ -5,13 +5,15 @@ if [ "$(whoami)" != "root" ]; then
  exit
 fi
 
-EGPU_TEMPLATE="/etc/X11/xorg.conf.egpu"
-EGPU_BUS_ID=$(awk '/BusID/{gsub(/(PCI:|\")/," ");print$2}' < ${EGPU_TEMPLATE})
+XORG_DIR="/etc/X11/xorg.conf.d"
+EGPU_TEMPLATE="${XORG_DIR}/xorg.conf.egpu"
+# EGPU_BUS_ID=$(awk '/BusID/{gsub(/(PCI:|\")/," ");print$2}' < ${EGPU_TEMPLATE})
+EGPU_BUS_ID=$(awk '/BusID/{gsub(/(PCI:|")/," ");print$2}' < ${EGPU_TEMPLATE})
 XORG_DRIVER=$(awk '/Driver/{gsub("\"","");print$2}' < ${EGPU_TEMPLATE})
 
-if [ -h /etc/X11/xorg.conf ] && \
-   [ -f /etc/X11/xorg.conf.egpu ] && \
-   [ "$(readlink /etc/X11/xorg.conf)" = "/etc/X11/xorg.conf.egpu" ]; then
+if [ -h ${XORG_DIR}/xorg.conf ] && \
+   [ -f ${XORG_DIR}/xorg.conf.egpu ] && \
+   [ "$(readlink ${XORG_DIR}/xorg.conf)" = "${XORG_DIR}/xorg.conf.egpu" ]; then
   EGPU_SET="true"
 else
   EGPU_SET="false"
@@ -84,7 +86,8 @@ switch_egpu() {
       exit 0
     fi
   else
-    ln -s /etc/X11/xorg.conf.egpu /etc/X11/xorg.conf
+    rm -f ${XORG_DIR}/xorg.conf
+    ln -s ${XORG_DIR}/xorg.conf.egpu ${XORG_DIR}/xorg.conf
     ask_reload "You are now set up. Would you like to reload? (Y/n)"
     if [ ${RELOAD} = "true" ]; then
       do_reload
@@ -96,7 +99,12 @@ switch_egpu() {
 
 switch_internal() {
   if [ "${EGPU_SET}" = "true" ]; then
-    rm -f /etc/X11/xorg.conf
+    rm -f ${XORG_DIR}/xorg.conf
+    if [ -e ${XORG_DIR}/xorg.conf.internal ]
+    then
+      ln -s ${XORG_DIR}/xorg.conf.internal ${XORG_DIR}/xorg.conf
+    fi
+
     ask_reload "You are now set up. Would you like to reload? (Y/n)"
     if [ ${RELOAD} = "true" ]; then
       do_reload
@@ -158,7 +166,7 @@ case $1 in
     esac
   ;;
   setup)
-    cp /usr/share/gswitch/xorg.conf.egpu /etc/X11/xorg.conf.egpu
+    cp /usr/share/gswitch/xorg.conf.egpu ${XORG_DIR}/xorg.conf.egpu
     lspci | awk '/vga|VGA/{print "BusID: "$0}'
     echo "Which of these cards is your eGPU?"
     echo "Please type in the BusID, e.g: 00:02.0"
@@ -175,7 +183,7 @@ case $1 in
         DEC_ID="${DEC_ID}:${DEC_VALUE}"
     done
     DEC_ID=$(echo ${DEC_ID} | sed 's/^:/PCI:/')
-    sed -E -i "s/BusID.*$/BusID      \"${DEC_ID}\"/" /etc/X11/xorg.conf.egpu
+    sed -E -i "s/BusID.*$/BusID      \"${DEC_ID}\"/" ${XORG_DIR}/xorg.conf.egpu
     GPU_ID=$(lspci | grep -i "${HEX_ID}")
     if echo "${GPU_ID}" | grep -qi 'nvidia'; then
       DRIVER="nvidia"
@@ -185,7 +193,7 @@ case $1 in
       echo "Couldn't automatically find the proper driver for the GPU. Exiting."
       exit 1
     fi
-    sed -E -i "s/Driver.*$/Driver     \"${DRIVER}\"/" /etc/X11/xorg.conf.egpu
+    sed -E -i "s/Driver.*$/Driver     \"${DRIVER}\"/" ${XORG_DIR}/xorg.conf.egpu
     echo "Setup complete!"
     exit 0
   ;;
