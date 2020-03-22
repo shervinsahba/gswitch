@@ -2,25 +2,25 @@
 
 This is an application that puts a xorg config in place when you want to use a external GPU and can remove the config again when it's time to go back. Specifically, **this is a slight modification of [Karli Sjoberg's original gswitch](https://github.com/karli-sjoberg/gswitch) for use on Manjaro and Arch based systems**. Here are the differences between this version and Karli's:
 
-* Default xorg directory set to `/etc/X11/xorg.conf.d`.
+1. Default xorg directory set to `/etc/X11/xorg.conf.d`. 
 
-> Created a `XORG_DIR` parameter that can be modified to your chosen xorg directory. You'll need to edit `XORG_DIR` in both `gswitch` and `Makefile`, but the default is set to match the typical Manjaro setup.
+	Created a `XORG_DIR` parameter that can be modified to your chosen xorg directory. You'll need to edit `XORG_DIR` in both `gswitch` and `Makefile`, but the default is set to match the typical Manjaro setup.
 
-* Preservation and handling of `20-intel.conf`. 
+2. Preservation and handling of `20-intel.conf`. 
 
-> Arch users with Intel graphics may have a `20-intel.conf` file to run internal graphics. This version of `gswitch` will backup and append `20-intel.conf` into a `xorg.conf.internal` file. Then `sudo gswitch internal` will activate this configuration.
+	Arch users with Intel graphics may have a `20-intel.conf` file to run internal graphics. This version of `gswitch` will backup and append `20-intel.conf` into a `xorg.conf.internal` file. Then `sudo gswitch internal` will activate this configuration.
 
-* Preservation and handling of a pre-existing `xorg.conf`.
+3. Preservation and handling of a pre-existing `xorg.conf`.
 
-> Similar to the above, any pre-existing `xorg.conf` will be backed up and appended into `xorg.conf.internal`.
+	Similar to the above, any pre-existing `xorg.conf` will be backed up and appended into `xorg.conf.internal`.
 
-* Recovery of `20-intel.conf` and `xorg.conf` upon uninstall.
+4. Recovery of `20-intel.conf` and `xorg.conf` upon uninstall.
 
-> Uninstalling `gswitch` will restore the aforementioned backups.
+	Uninstalling `gswitch` will restore the aforementioned backups.
 
-* Fixed a warning with `awk`.
+5. Fixed a warning with `awk`.
 
-> Arch and Ubuntu systems use a different `awk`. The warning you may encounter is harmless, but it's fixed here.
+	Arch and Ubuntu systems use a different `awk`. The warning you may encounter is harmless, but it's fixed here.
 
 ---
 
